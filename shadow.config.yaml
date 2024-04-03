@@ -1,0 +1,34 @@
+general:
+  stop_time: 30 min
+  # necessary for go runtime
+  model_unblocked_syscall_latency: true
+
+network:
+  graph:
+    # use a built-in network graph containing
+    # a single vertex with a bandwidth of 1 Gbit
+    type: 1_gbit_switch
+
+hosts:
+  # a host with the hostname 'server'
+  server:
+    network_node_id: 0
+    ip_addr: 100.0.0.1
+    processes:
+    - path: tgen
+      environment: { OPENBLAS_NUM_THREADS: "1" }
+      args: ../../../conf/tgen-server.graphml.xml
+      start_time: 2
+      expected_final_state: running
+    - path: ./proxy/proxy
+      args: -server 127.0.0.1:8080 -addr :8081
+      start_time: 1
+      expected_final_state: running
+  client:
+    network_node_id: 0
+    processes:
+    - path: tgen
+      environment: { OPENBLAS_NUM_THREADS: "1" }
+      args: ../../../conf/tgen-client.graphml.xml
+      start_time: 10
+      expected_final_state: {exited: 0}
